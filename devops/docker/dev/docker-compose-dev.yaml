@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  nginx:
+    image: nginx:1.25.2-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ../nginx/conf.dev:/etc/nginx/conf.d
+      - ../../back_static:/opt/services/backend/back_static
+      - ../../back_media:/opt/services/backend/back_media
+    networks:
+      - nginx_network
