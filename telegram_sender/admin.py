@@ -3,12 +3,10 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth.models import Group
 
 from telegram_sender.models import Campaign, TelegramAccount, PreparedMessage, Contact, MessageLog
-from telegram_sender.tasks import send_campaign_messages, test, send_campaign_messages_in_thread
+from telegram_sender.tasks import send_campaign_messages
 from telegram_sender.forms import TelegramAccountForm
 
-from asgiref.sync import async_to_sync
 
-from threading import Thread
 
 # Register your models here.
 
@@ -53,11 +51,6 @@ class CampaignAdmin(admin.ModelAdmin):
         try:
             for campaign in queryset:
                 send_campaign_messages.delay(campaign.id)
-                # thread = Thread(target=send_campaign_messages_in_thread, args=(campaign.id,))
-                # thread = Thread(target=send_campaign_messages, args=(campaign.id,))
-                # thread.start()
-                # send_campaign_messages.delay(campaign.id)
-                # test()
         except Exception as e:
             self.message_user(request, f"Произошла ошибка: {e}")
 
