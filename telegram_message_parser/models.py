@@ -45,7 +45,7 @@ class TelegramMessage(models.Model):
     date = models.DateTimeField(auto_now_add=True, verbose_name="Дата получения")
 
     def __str__(self):
-        return f"{getattr(self.chat, 'title', 'Нет названия')} - {self.sender or 'Нет отправителя'}"
+        return f"{getattr(self.chat, 'title', 'Нет названия')} - {self.sender or 'Нет отправителя'} - {self.pk}"
 
     class Meta:
         verbose_name = 'Сообщение'

@@ -1,5 +1,4 @@
 import io
-import redis
 import aiohttp
 import asyncio
 
@@ -10,29 +9,11 @@ from aiogram.filters import Command, CommandStart
 from decouple import config as cfg
 
 
-
-r = redis.StrictRedis(host=str(cfg("REDIS_HOST")), port=int(cfg("REDIS_PORT")), db=0, decode_responses=True)
-
 BOT_TOKEN = str(cfg("TELEGRAM_BOT_TOKEN"))
 DJANGO_API_URL = "http://127.0.0.1:8000/api/v1/messages/create/"
 
 dp = Dispatcher()
 bot = Bot(BOT_TOKEN)
-
-
-async def get_all_channels_from_cache():
-    channels = r.get('all_channels')
-    print(channels)
-    if channels:
-        return channels.split(",")
-    return []
-
-async def get_all_keywords_from_cache():
-    keywords = r.get('all_keywords')
-    print(keywords)
-    if keywords:
-        return keywords.split(",")
-    return []
 
 
 async def send_message_to_django(chat_id, sender, text, images):
@@ -76,18 +57,6 @@ async def message_handler(message: Message):
     chat_id = message.chat.id
     sender = message.from_user.username or "Неизвестный"
     text = message.text.lower() if message.text else "Нет текста"
-
-    chat_ids = await get_all_channels_from_cache()
-    keywords = await get_all_keywords_from_cache()
-
-    print(chat_ids)
-    print(keywords)
-    if chat_id not in chat_ids:
-        return
-
-    if not any(keyword in text for keyword in keywords):
-        return
-    print("added")
 
     images = message.photo or []
     await send_message_to_django(chat_id, sender, text, images)

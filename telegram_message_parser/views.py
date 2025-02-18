@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 
 from telegram_message_parser.serializers import MessageCreateSerializer
-from telegram_message_parser.models import TelegramMessage, TelegramMessageImages, TelegramChannelGroup
+from telegram_message_parser.models import TelegramMessage, TelegramMessageImages, TelegramChannelGroup, KeyWordModel
 
 # Create your views here.
 
@@ -20,10 +20,18 @@ class CreateMessageView(APIView):
                 chat = TelegramChannelGroup.objects.get(chat_id=data["chat_id"])
             except TelegramChannelGroup.DoesNotExist:
                 return Response({"error": "Chat not found"}, status=404)
+
+            sender = data["sender"]
+            text = data["text"]
+
+            keywords = list(KeyWordModel.objects.values_list("word", flat=True))
+            if not any(keyword.lower() in text.lower() for keyword in keywords):
+                return Response({"success": True, "message_id": None}, status=200)
+
             message = TelegramMessage.objects.create(
                 chat=chat,
-                sender=data["sender"],
-                text=data["text"],
+                sender=sender,
+                text=text,
             )
 
             images = []
@@ -33,13 +41,6 @@ class CreateMessageView(APIView):
             if images:
                 TelegramMessageImages.objects.bulk_create(images)
 
-            return Response({"success": True, "message_id": message.id})
+            return Response({"success": True, "message_id": message.id}, status=200)
 
         return Response(serializer.errors, status=400)
-        # serializer = MessageCreateSerializer(data=request.data)
-        # serializer.is_valid(raise_exception=True)
-        # print(serializer.data)
-        # images = request.FILES.get("images", [])
-        # image_serializer = MessageImagesSerializer(data=images, many=True)
-        # print(image_serializer.data)
-        # return Response({"status": "ok"}, status=200)
