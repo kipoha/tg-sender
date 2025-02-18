@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'telegram_sender',
+    'telegram_message_parser',
 ]
 
 MIDDLEWARE = [

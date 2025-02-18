@@ -16,6 +16,16 @@ services:
     networks:
       - main_network
       - nginx_network
+
+  tg:
+    <<: *back
+    container_name: telegram
+    command: sh -c "python main.py"
+    depends_on:
+      - db
+      - redis
+      - back
+    ports: []
       
   db:
     image: postgres:15-alpine
@@ -35,14 +45,14 @@ services:
     restart: unless-stopped
     ports: []
     container_name: celery_worker
-    command: celery -A config worker -l info --beat
+    command: celery -A core worker -l info --beat
   
   celery_beat:
     <<: *back
     restart: unless-stopped
     ports: []
     container_name: celery_beat
-    command: celery -A config beat --loglevel=INFO
+    command: celery -A core beat --loglevel=INFO
 
   redis:
     restart: always

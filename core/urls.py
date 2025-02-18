@@ -19,8 +19,11 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 
+from telegram_message_parser.views import CreateMessageView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/v1/messages/create/', CreateMessageView.as_view()),
 ]
 if settings.DEBUG and not settings.PROD:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

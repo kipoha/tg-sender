@@ -5,11 +5,13 @@ services:
       image: nginx:1.13-alpine
       restart: unless-stopped
       ports:
+        - "80:80"
         - "443:443"
       volumes:
         - ../nginx/conf.prod:/etc/nginx/conf.d
         - ../../back_static:/opt/services/backend/back_static
         - ../../back_media:/opt/services/backend/back_media
         - /etc/letsencrypt:/etc/letsencrypt
+        - ../../certbot:/var/www/certbot
       networks:
         - nginx_network
