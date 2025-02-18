@@ -12,7 +12,7 @@ services:
     ports:
       - "8000:8000" 
     command: sh -c "python manage.py makemigrations && python manage.py migrate && python manage.py collectstatic
-      --no-input && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --log-level info"
+      --no-input && gunicorn core.wsgi:application --bind 0.0.0.0:8000 --log-level info"
     networks:
       - main_network
       - nginx_network
