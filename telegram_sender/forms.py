@@ -1,13 +1,11 @@
 from asgiref.sync import async_to_sync
 
 from django import forms
-from django.conf import settings
 from django.core.cache import cache
 
 from telegram_sender.models import TelegramAccount
 from telegram_sender.utils import create_client
 
-from telethon import TelegramClient
 from telethon.errors import PhoneCodeInvalidError, SessionPasswordNeededError, PhoneCodeExpiredError, PhoneCodeEmptyError
 
 async def verify_telegram_code(phone_number, code) -> tuple[bool, str]:
@@ -38,6 +36,14 @@ async def verify_telegram_code(phone_number, code) -> tuple[bool, str]:
             print("❌ Код истек!")
             client.disconnect()
             return False, "Код истек! Чтобы получить новый, сохраните аккаунт без кода."
+        except PhoneCodeEmptyError:
+            print("❌ Код пустой!")
+            client.disconnect()
+            return False, "Код пустой!"
+        except Exception as e:
+            print(f"❌ Ошибка: {e}")
+            client.disconnect()
+            return False, f"❌ Ошибка: {e}"
     else:
         print("✅ Уже авторизован!")
         client.disconnect()
@@ -46,7 +52,7 @@ async def verify_telegram_code(phone_number, code) -> tuple[bool, str]:
 
 async def send_telegram_code(phone_number):
     """Отправляет код подтверждения и сохраняет phone_code_hash"""
-    client = TelegramClient(str(phone_number), settings.TELEGRAM_API_ID, settings.TELEGRAM_API_HASH)
+    client = create_client(phone_number)
 
     await client.connect()
     if not await client.is_user_authorized():
@@ -75,7 +81,15 @@ class TelegramAccountForm(forms.ModelForm):
         elif code:
             success, message = async_to_sync(verify_telegram_code)(phone_number, code)
             if not success:
-                self.add_error("code", message)
+                self.add_error("code", str(message))
+            else:
+                try:
+                    account = TelegramAccount.objects.get(phone_number=phone_number)
+                    account.is_active = True
+                    account.save()
+                except TelegramAccount.DoesNotExist:
+                    pass
+
 
         return code
 

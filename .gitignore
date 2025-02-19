@@ -16,5 +16,5 @@ back_media/
 storage/
 certbot/
 
-apps/*/migrations/*
-!apps/*/migrations/__init__.py
+*/migrations/*
+!*/migrations/__init__.py

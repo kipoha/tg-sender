@@ -1,6 +1,6 @@
 import asyncio
 
-from asgiref.sync import sync_to_async, async_to_sync
+from asgiref.sync import async_to_sync
 
 from celery import shared_task
 
