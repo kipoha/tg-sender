@@ -52,15 +52,20 @@ async def verify_telegram_code(phone_number, code) -> tuple[bool, str]:
 
 async def send_telegram_code(phone_number):
     """Отправляет код подтверждения и сохраняет phone_code_hash"""
-    client = create_client(phone_number)
+    try:
+        client = create_client(phone_number)
 
-    await client.connect()
-    if not await client.is_user_authorized():
-        sent_code = await client.send_code_request(phone_number)
-        cache.set(phone_number, sent_code.phone_code_hash, 300)
-        print(f"📲 Код подтверждения отправлен на {phone_number}")
+        await client.connect()
+        if not await client.is_user_authorized():
+            sent_code = await client.send_code_request(phone_number)
+            cache.set(phone_number, sent_code.phone_code_hash, 300)
+            print(f"📲 Код подтверждения отправлен на {phone_number}")
+            client.disconnect()
+            return sent_code.phone_code_hash, None
+    except Exception as e:
+        print(f"❌ Ошибка: {e}")
         client.disconnect()
-        return sent_code.phone_code_hash
+        return None, e
 
 
 
@@ -75,9 +80,9 @@ class TelegramAccountForm(forms.ModelForm):
         code = self.cleaned_data.get("code")
         phone_number = self.cleaned_data.get("phone_number")
         if not code:
-            hash_ = async_to_sync(send_telegram_code)(phone_number)
+            hash_, error = async_to_sync(send_telegram_code)(phone_number)
             if not hash_:
-                self.add_error("code", "Не удалось отправить код подтверждения")
+                self.add_error("code", error)
         elif code:
             success, message = async_to_sync(verify_telegram_code)(phone_number, code)
             if not success:

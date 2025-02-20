@@ -17,10 +17,8 @@ class TelegramAccountAdmin(admin.ModelAdmin):
     form = TelegramAccountForm
     list_display = ('session_name', 'phone_number', 'is_active',)
 
- 
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
-    list_display = ('name', 'contact_value', 'created_at')
     readonly_fields = ('created_at',)
 
 

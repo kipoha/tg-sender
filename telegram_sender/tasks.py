@@ -28,7 +28,8 @@ async def connect_send(client: TelegramClient, content_type, contact_value, mess
 def send_campaign_messages(campaign_id):
     campaign = Campaign.objects.get(pk=campaign_id)
     accounts = campaign.accounts.all()
-    contacts = campaign.contacts.all()
+    contacts = [c for contact in campaign.contacts.all() for c in contact.contacts.splitlines()]
+    messages = campaign.messages.all()
     interval = campaign.send_interval * 60
     max_contacts_per_account = campaign.max_contacts_per_account
     messages_log = []
@@ -40,16 +41,16 @@ def send_campaign_messages(campaign_id):
         
         client = create_client(account.phone_number)
 
-        for i, contact in enumerate(contacts):
+        for i, contact_value in enumerate(contacts):
             try:
-                content_type = campaign.message.message_type
-                message_content = campaign.message.content
-                contact_value = contact.contact_value
-                media_file = campaign.message.media_file
+                for message in messages:
+                    content_type = message.message_type
+                    message_content = message.content
+                    media_file = message.media_file
 
-                loop.run_until_complete(connect_send(client, content_type, contact_value, message_content, media_file))
+                    loop.run_until_complete(connect_send(client, content_type, contact_value, message_content, media_file))
 
-                messages_log.append(MessageLog(campaign=campaign, account=account, recipient=contact_value, status='sent'))
+                    messages_log.append(MessageLog(campaign=campaign, account=account, recipient=contact_value, status='sent'))
 
                 if (i + 1) % max_contacts_per_account == 0:
                     loop.run_until_complete(asyncio.sleep(interval))
@@ -57,7 +58,6 @@ def send_campaign_messages(campaign_id):
                     loop.run_until_complete(asyncio.sleep(interval / 2))
 
             except Exception as e:
-                contact_value = contact.contact_value
                 error_message = str(e)
                 messages_log.append(MessageLog(campaign=campaign, account=account, recipient=contact_value, status='failed', error_message=error_message))
                 print(f"Error sending message to {contact_value}: {error_message}")

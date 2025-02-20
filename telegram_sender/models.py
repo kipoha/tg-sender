@@ -18,16 +18,17 @@ class TelegramAccount(models.Model):
         verbose_name_plural = "Telegram аккаунты"
 
 class Contact(models.Model):
-    name = models.CharField(max_length=255, verbose_name="Имя контакта")
-    contact_value = models.CharField(max_length=255, unique=True, verbose_name="Номер или юзернейм контакта")
+    name = models.CharField(max_length=255, verbose_name="Название")
+    contacts = models.TextField(verbose_name="Список номеров и никнеймов")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.name} - {self.contact_value}"
+        return f"{self.name}"
 
     class Meta:
         verbose_name = "Контакт"
         verbose_name_plural = "Контакты"
+
 
 class PreparedMessage(models.Model):
     MESSAGE_TYPES = (
@@ -80,7 +81,7 @@ class PreparedMessage(models.Model):
 class Campaign(models.Model):
     name = models.CharField(max_length=255, verbose_name="Название рассылки")
     contacts = models.ManyToManyField(Contact, verbose_name="Контакты")
-    message = models.ForeignKey(PreparedMessage, on_delete=models.CASCADE, verbose_name="Шаблон сообщения")
+    messages = models.ManyToManyField(PreparedMessage, verbose_name="Шаблон сообщения")
     accounts = models.ManyToManyField(TelegramAccount, verbose_name="Аккаунты")
     send_interval = models.IntegerField(default=5, verbose_name="Интервал отправки(в минутах)")
     max_contacts_per_account = models.IntegerField(default=10, verbose_name="Максимальное количество контактов в аккаунте")
