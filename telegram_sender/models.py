@@ -109,6 +109,7 @@ class MessageLog(models.Model):
         default='sent'
     )
     error_message = models.TextField(blank=True, null=True, verbose_name="Сообщение об ошибке")
+    error_detail = models.TextField(blank=True, null=True, verbose_name="Детали ошибки")
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

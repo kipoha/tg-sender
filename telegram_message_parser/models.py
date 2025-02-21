@@ -1,26 +1,16 @@
 from django.db import models
-from django.core.exceptions import ValidationError
 
-from api.telegram_api import get_chat
+from telegram_sender.models import TelegramAccount
 
 # Create your models here.
 
 class TelegramChannelGroup(models.Model):
     title = models.CharField(max_length=255, null=True, blank=True, verbose_name="Название")
     chat_id = models.CharField(max_length=255, unique=True, verbose_name="ID чата")
+    account = models.ForeignKey(TelegramAccount, on_delete=models.CASCADE, verbose_name="Аккаунт")
 
     def __str__(self) -> str:
         return str(self.title)
-
-    def clean(self):
-        success, title = get_chat(str(self.chat_id))
-        if not success:
-            raise ValidationError("Неверный ID чата")
-        self.title = title
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = 'Канал/Группа'
@@ -59,3 +49,13 @@ class TelegramMessageImages(models.Model):
     class Meta:
         verbose_name = 'Изображение'
         verbose_name_plural = 'Изображения'
+
+
+class MessageError(models.Model):
+    channel = models.ForeignKey(TelegramChannelGroup, on_delete=models.CASCADE, verbose_name="Канал/Группа")
+    error = models.TextField(verbose_name="Текст ошибки", null=True, blank=True)
+    error_detail = models.TextField(verbose_name="Детали ошибки", null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Ошибка'
+        verbose_name_plural = 'Ошибки'

@@ -1,5 +1,7 @@
 import asyncio
 
+import traceback
+
 from asgiref.sync import async_to_sync
 
 from celery import shared_task
@@ -59,7 +61,7 @@ def send_campaign_messages(campaign_id):
 
             except Exception as e:
                 error_message = str(e)
-                messages_log.append(MessageLog(campaign=campaign, account=account, recipient=contact_value, status='failed', error_message=error_message))
+                messages_log.append(MessageLog(campaign=campaign, account=account, recipient=contact_value, status='failed', error_message=error_message, error_detail=traceback.format_exc()))
                 print(f"Error sending message to {contact_value}: {error_message}")
         
         if client.is_connected():

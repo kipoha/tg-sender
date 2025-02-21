@@ -1,15 +1,35 @@
 from django.contrib import admin
 from django.utils import html
+from django.http import HttpResponseRedirect
+from django.core.cache import cache
 
-from telegram_message_parser.models import TelegramChannelGroup, KeyWordModel, TelegramMessage, TelegramMessageImages
+from telegram_message_parser.models import TelegramChannelGroup, KeyWordModel, TelegramMessage, TelegramMessageImages, MessageError
+from telegram_message_parser.tasks import parse_message
 
 # Register your models here.
 
 @admin.register(TelegramChannelGroup)
 class TelegramChannelGroupAdmin(admin.ModelAdmin):
-    readonly_fields = ("title", )
-    fields = ("title", "chat_id",)
+    fields = ("title", "chat_id", "account")
 
+    actions = ['parse_messages']
+
+    def parse_messages(self, request, queryset):
+        keywords = list(KeyWordModel.objects.values_list("word", flat=True))
+        if not keywords:
+            self.message_user(request, "Ключевые слова не найдены")
+            return HttpResponseRedirect(request.get_full_path())
+        try:
+            for group in queryset:
+                parse_message.delay(group.chat_id, str(group.account.phone_number), keywords)
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
+            self.message_user(request, f"Произошла ошибка: {e}")
+
+        self.message_user(request, "Парсинг завершен!")
+        return HttpResponseRedirect(request.get_full_path())
+    parse_messages.short_description = "Начать парсинг"
 
 @admin.register(KeyWordModel)
 class KeyWordAdmin(admin.ModelAdmin):
@@ -36,3 +56,8 @@ class TelegramMessageAdmin(admin.ModelAdmin):
 
     def has_view_permission(self, request, obj=None):
         return True
+
+
+@admin.register(MessageError)
+class MessageErrorAdmin(TelegramMessageAdmin):
+    inlines = []
