@@ -29,6 +29,8 @@ async def connect_send(client: TelegramClient, content_type, contact_value, mess
 @shared_task()
 def send_campaign_messages(campaign_id):
     campaign = Campaign.objects.get(pk=campaign_id)
+    campaign.status = 'running'
+    campaign.save()
     accounts = campaign.accounts.all()
     contacts = [c for contact in campaign.contacts.all() for c in contact.contacts.splitlines()]
     messages = campaign.messages.all()
@@ -71,6 +73,8 @@ def send_campaign_messages(campaign_id):
         MessageLog.objects.bulk_create(messages_log)
     except IntegrityError as e:
         print(f"Error saving message logs: {e}")
+    campaign.status = 'completed'
+    campaign.save()
 
 @async_to_sync
 async def test_async():
