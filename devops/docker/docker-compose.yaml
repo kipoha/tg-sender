@@ -17,16 +17,7 @@ services:
       - main_network
       - nginx_network
 
-  tg:
-    <<: *back
-    container_name: telegram
-    command: sh -c "python main.py"
-    depends_on:
-      - db
-      - redis
-      - back
-    ports: []
-      
+     
   db:
     image: postgres:15-alpine
     container_name: db
