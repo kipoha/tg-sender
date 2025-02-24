@@ -21,7 +21,8 @@ async def parse_messages(client: TelegramClient, channel_ids, limit, keywords, s
             if message.text and any(keyword.lower() in message.text.lower() for keyword in keywords):
                 try:
                     for send_channel_id in send_channel_ids:
-                        await client.forward_messages(send_channel_id, message)
+                        # await client.forward_messages(send_channel_id, message)
+                        await message.forward_to(send_channel_id)
                 except Exception as e:
                     import traceback
                     await create_error_message(channel_id, str(e), traceback.format_exc())
@@ -51,7 +52,7 @@ def parse_message(channel_ids, send_channel_ids, phonenumber, keywords):
             loop.run_until_complete(fetch_and_parse())
         except Exception as e:
             import traceback
-            print(traceback.format_exc())
+            MessageError.objects.create(error=str(e), error_detail=traceback.format_exc())
     except Exception as e:
         import traceback
-        MessageError.objects.create(channel=TelegramChannelGroup.objects.get(chat_id=channel_id), error=str(e), error_detail=traceback.format_exc())
+        MessageError.objects.create(error=str(e), error_detail=traceback.format_exc())

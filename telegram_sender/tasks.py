@@ -14,16 +14,12 @@ from telegram_sender.models import Campaign, MessageLog
 from telegram_sender.utils import create_client
 
 async def connect_send(client: TelegramClient, content_type, contact_value, message_content=None, media_file=None):
-    if not client.is_connected():
-        await client.connect()
+    await client.connect()
 
-    try:
-        if content_type == 'text':
-            await client.send_message(contact_value, message_content)
-        elif content_type in ['photo', 'video', 'voice', 'round']:
-            await client.send_file(contact_value, media_file, caption=message_content)
-    except Exception as e:
-        raise e
+    if content_type == 'text':
+        await client.send_message(contact_value, message_content)
+    elif content_type in ['photo', 'video', 'voice', 'round']:
+        await client.send_file(contact_value, media_file, caption=message_content)
 
 
 @shared_task()
@@ -65,9 +61,9 @@ def send_campaign_messages(campaign_id):
                 error_message = str(e)
                 messages_log.append(MessageLog(campaign=campaign, account=account, recipient=contact_value, status='failed', error_message=error_message, error_detail=traceback.format_exc()))
                 print(f"Error sending message to {contact_value}: {error_message}")
+                continue
         
-        if client.is_connected():
-            client.disconnect()
+        client.disconnect()
 
     try:
         MessageLog.objects.bulk_create(messages_log)

@@ -10,7 +10,7 @@ from telegram_message_parser.tasks import parse_message
 
 @admin.register(TelegramChannelGroup)
 class TelegramChannelGroupAdmin(admin.ModelAdmin):
-    fields = ("title", "chat_id", "account")
+    fields = ("title", "chat_id", "account", "send_chat_id")
 
     actions = ['parse_messages']
 

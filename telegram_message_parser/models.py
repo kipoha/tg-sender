@@ -53,7 +53,7 @@ class KeyWordModel(models.Model):
 
 
 class MessageError(models.Model):
-    channel = models.ForeignKey(TelegramChannelGroup, on_delete=models.CASCADE, verbose_name="Канал/Группа")
+    channel = models.ForeignKey(TelegramChannelGroup, on_delete=models.CASCADE, verbose_name="Канал/Группа", null=True, blank=True)
     error = models.TextField(verbose_name="Текст ошибки", null=True, blank=True)
     error_detail = models.TextField(verbose_name="Детали ошибки", null=True, blank=True)
 
