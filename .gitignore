@@ -11,6 +11,8 @@ test.py
 *.session
 celerybeat-schedule.*
 
+sessions/
+
 back_static/
 back_media/
 storage/

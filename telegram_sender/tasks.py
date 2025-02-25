@@ -44,13 +44,18 @@ def send_campaign_messages(campaign_id):
         for i, contact_value in enumerate(contacts):
             try:
                 for message in messages:
-                    content_type = message.message_type
-                    message_content = message.content
-                    media_file = message.media_file
+                    try:
+                        content_type = message.message_type
+                        message_content = message.content
+                        media_file = message.media_file
 
-                    loop.run_until_complete(connect_send(client, content_type, contact_value, message_content, media_file))
+                        loop.run_until_complete(connect_send(client, content_type, contact_value, message_content, media_file))
 
-                    messages_log.append(MessageLog(campaign=campaign, account=account, recipient=contact_value, status='sent'))
+                        messages_log.append(MessageLog(campaign=campaign, account=account, recipient=contact_value, status='sent'))
+                    except Exception as e:
+                        error_message = str(e)
+                        messages_log.append(MessageLog(campaign=campaign, account=account, recipient=contact_value, status='failed', error_message=error_message, error_detail=traceback.format_exc()))
+                        print(f"Error sending message to {contact_value}: {error_message}")
 
                 if (i + 1) % max_contacts_per_account == 0:
                     loop.run_until_complete(asyncio.sleep(interval))

@@ -10,17 +10,16 @@ from telegram_message_parser.tasks import parse_message
 
 @admin.register(TelegramChannelGroup)
 class TelegramChannelGroupAdmin(admin.ModelAdmin):
-    fields = ("title", "chat_id", "account", "send_chat_id")
+    fields = ("title", "chat_id", "account", "send_chat_id", "keywords")
 
     actions = ['parse_messages']
 
     def parse_messages(self, request, queryset):
-        keywords = list(KeyWordModel.objects.values_list("word", flat=True))
-        if not keywords:
-            self.message_user(request, "Ключевые слова не найдены")
-            return HttpResponseRedirect(request.get_full_path())
+        # keywords = KeyWordModel.objects.all()
+        # keywords = [line for keyword in keywords for line in keyword.words.splitlines()]
         try:
             for group in queryset:
+                keywords = [line for keyword in group.keywords.all() for line in keyword.words.splitlines()]
                 parse_message.delay(group.chat_id, group.send_chat_id, str(group.account.phone_number), keywords)
         except Exception as e:
             import traceback
